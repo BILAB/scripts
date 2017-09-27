@@ -1,0 +1,28 @@
+Copyright (c) 2007-2009 Peng Tao
+
+Toolkit to Assist ONIOM calculations (TAO) Package
+
+The authur retains ownership of all materials (including software
+and documention). Reports of modifications and derivative works
+are to be made to author, and are to be made available on request.
+
+This software is provided "as is" WITHOUT ANY WARRANTY; without even 
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+
+The permission to use, copy this software and its documentation is only 
+granted for private use of non-profit organizations.
+
+Please cite the original article of this software in any work based on this
+material.
+
+
+This Toolkit was originally developed based on Electronic Structure Perl Toolkit 
+(ESPT) by Dr. Jason L. Sonnenberg (sonnenberg.11@osu.edu). Now the toolkit TAO is
+distributed separately from ESPT with Dr. Jason L. Sonnenberg's permission.
+
+Complete source code for the TAO toolkit and surrounding utilities is
+available from http://www.chem.wayne.edu/schlegel/Software.html
+
+
+Please contact Dr. Peng Tao (tao.21@osu.edu) for any further questions.
+
