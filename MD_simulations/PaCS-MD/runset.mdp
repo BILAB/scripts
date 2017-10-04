@@ -1,0 +1,64 @@
+title   = short_run
+define  =
+
+;Run parms
+integrator      = md
+dt              = 0.002     ; 2 fs
+nsteps          = 50000    ;  (100 ps)
+cutoff-scheme   = Verlet
+nstcomm         = 10
+
+;Output prams
+nstxout         = 500
+nstvout         = 5000
+nstfout         = 5000
+nstenergy       = 5000
+nstxtcout       = 5000
+
+;Bond params
+constraint_algorithm    = LINCS
+constraints             = hbonds
+lincs_iter              = 2
+lincs_order             = 3
+continuation            = no
+
+;Single-range
+ns_type         = grid
+nstlist         = 20
+rlist           = 1.0
+rcoulomb        = 1.0
+rvdw            = 1.0
+
+;Lengevin Dynamics
+bd_fric         = 2.0
+ld_seed         = -1
+
+; Electrostats
+coulombtype     = PME
+pme_order       = 4
+fourierspacing   = 0.10
+
+;Berendsen couplingis on
+tcoupl          = V-rescale
+tc-grps         = nowation Water_and_ions
+tau_t           = 0.1 0.1
+ref_t           = 350 350
+
+;Pressure coupling is on
+pcoupl          = Parrinello-Rahman
+pcoupltype      = isotropic
+tau_p           = 1.0
+ref_p           = 1.0
+compressibility = 4.5e-5
+refcoord_scaling    = com
+
+;Generate velocities is ON
+gen_vel         = yes
+gen_temp        = 300
+
+;PBC
+pbc             = xyz
+
+;Long-range dispersion correction
+DispCorr        = EnerPres
+

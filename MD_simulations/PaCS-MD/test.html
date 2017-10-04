@@ -1,0 +1,101 @@
+<h1 id="概要">概要</h1>
+<ul>
+<li>PaCS-MDの xcrypt &amp; Gromacs-2016-x による実装です。</li>
+<li><a href="">PaCS-MD</a> と <a href="https://bitbucket.org/tasuku/xcrypt">xcrypt</a> についての詳細はオリジナルをご覧ください。</li>
+</ul>
+<h1 id="ファイルの説明">ファイルの説明</h1>
+<ul>
+<li><code>pacs_run.xcr</code>
+<ul>
+<li><code>xcrypt pacs_run.xcr</code> で実行するxcrypt スクリプト</li>
+</ul></li>
+<li><code>grompp_bush.sh</code>
+<ul>
+<li><code>short_run_bush.sh</code> のための<code>tpr</code> ファイルを出力するスクリプト</li>
+</ul></li>
+<li><code>runset.mdp</code>
+<ul>
+<li>short MD の設定ファイル; <code>grompp_bush.sh</code> で読み込まれる</li>
+</ul></li>
+<li><code>short_run_bush.sh</code>
+<ul>
+<li>short MD の実行スクリプト</li>
+</ul></li>
+<li><code>transdist</code>
+<ul>
+<li>各サイクルのベストスコアを抽出,print</li>
+</ul></li>
+</ul>
+<h1 id="使い方">使い方</h1>
+<h2 id="環境">環境</h2>
+<ul>
+<li>Reedbush-h (GPU計算ノード) で動作を確認しています。</li>
+<li>Reedbush にはxcryptがもともとインストールされていますが、他の計算機でもインストールすることで可能らしいです</li>
+<li>Gromacs-2016-x</li>
+</ul>
+<h2 id="ディレクトリ構成想定">ディレクトリ構成(想定)</h2>
+<ul>
+<li>実行前</li>
+</ul>
+<pre><code>└── pacsをしたいディレクトリ
+    ├── pacs_run.xcr
+    ├── grompp_bush.sh
+    ├── runset.mdp
+    ├── short_run_bush.sh
+    └── transdist</code></pre>
+<ul>
+<li>実行後</li>
+</ul>
+<pre><code>    ├── cyc0
+    ├── cyc1
+    ├── ... (2 - 100)
+    ├── cyc100
+    ├── dis_nap-un1_xcrypt.xcr
+    ├── dist_trans.dat
+    ├── grompp_bush.sh
+    ├── inv_watch
+    ├── runset.mdp
+    ├── short_run_bush.sh
+    └── transdist</code></pre>
+<h2 id="実行手順">実行手順</h2>
+<ul>
+<li>ディレクトリに必要なファイルを揃える</li>
+</ul>
+<pre><code># reedbushでは
+$ module load xcrypt
+$ cd your_pacs_dir
+# 必ずしも screen である必要はないですが、xcrypt 自体はqsubされているわけではないため、reedbushからログアウトするとスクリプトが停止してしまうことの対策として、nohup なり screen なりを使うのが良いと思います。
+# 進行状況が出力されるのでscreenがおすすめです。(nohup でどうなるか知りません）
+$ screen 
+# in screen session
+$ xcrypt pacs_run.xcr
+job_name &lt;= initialized
+job_name &lt;= prepared
+job_name &lt;= submitted
+...
+...</code></pre>
+<ul>
+<li>tmux からログインしている場合は screen on tmux となりますので prefix キーにお気をつけください</li>
+<li>reedbushにデフォルトでインストールされている screen の prefix は C-a です(おそらく)</li>
+</ul>
+<h2 id="xcryptスクリプトの設定">xcryptスクリプトの設定</h2>
+<ul>
+<li>パラメータ設定
+<ul>
+<li>随時書き足します</li>
+<li>計算資源量の部分はややこしいので要注意です
+<ul>
+<li>自分が間違えていたら教えてください……</li>
+</ul></li>
+</ul></li>
+<li>サブルーチン設定
+<ul>
+<li>サブルーチンは
+<ol style="list-style-type: decimal">
+<li>mesure : ランキング作成のための測定</li>
+<li>merge_xvg : データの併合</li>
+<li>get_next_init : 次サイクルの初期構造の取得 &amp; 生成</li>
+</ol></li>
+<li>です。</li>
+</ul></li>
+</ul>

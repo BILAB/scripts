@@ -1,0 +1,176 @@
+# vim:set foldmethod=marker:
+use base qw (core limit);
+system "source /lustre/gi58/i58005/apps/gmx2016_3/bin/GMXRC.bash";
+
+###########################
+# User defined parameters #
+###########################
+
+# define PaCS MAX cycle
+my $MAX_CYCLE = 10;
+# define PaCS number of threads
+my $PACS_THREADS = 2;
+
+# define index path
+my $INDEX_FILE = "../grotop/index.ndx";
+# define mdp path
+my $RUNSET = "./runset.mdp";
+# define grompp script
+my $GROMPP = "./grompp_bush.sh";
+# define short run script
+my $SHORTRUN = "./short_run_bush.sh";
+# define initial structure
+my $INIT_GRO = "../heat/md9.gro";
+# define shortrun time (ps)
+my $RUN_TIME = 10;
+# define ranking key prefix
+my $KEY_PREFIX = "dist";
+
+# define qsub setting
+#my $QUEUE = "l-regular";
+my $QUEUE = "h-small";
+# define group id
+my $GROUP_ID = "gi58";
+# define short_run's limit time
+my $LIMIT_TIME = '00:30:00';
+
+# define resource
+# following is equal to select=1:ncpus=36:mpiprocs=6:ompthreads=6
+# define num node
+my $JS_PHNODE = '1';
+# define num core per proc
+my $JS_CPU = '6';
+# define num thread per proc
+my $JS_THREAD = '6';
+# define num procs 
+my $JS_NODE = '6';
+
+
+&limit::initialize($PACS_THREADS);
+
+my $cycle = 0;
+my @next_inits;
+
+# check if $RUNTIME is equal to dt*nsteps in $RUNSET
+my $time = `grep -E "nsteps|dt" $RUNSET | awk \'BEGIN{val=1} {val*=\$3} END{print val}\'`;
+$RUN_TIME == $time or die "\$RUN_TIME is NOT equal to dt*nsteps in $RUNSET\n";
+
+# main loop
+while ( $cycle <= $MAX_CYCLE ){
+    # Pre short run, for the first run.
+    if ($cycle == 0){
+        my %template = (
+            'id'   => 'pre_run',
+            'JS_phnode'     => $JS_PHNODE,
+            'JS_cpu'        => $JS_CPU,
+            'JS_thread'     => $JS_THREAD,
+            'JS_node'       => $JS_NODE,
+            'JS_queue'      => $QUEUE,
+            'JS_group'      => $GROUP_ID,
+            'JS_limit_time' => $LIMIT_TIME,
+            'exe0'          => $GROMPP,
+            'arg0_0'        => "$INIT_GRO 0 0",
+            'exe1'          => "$SHORTRUN 0 0",
+            'before'        => sub { mkdir "cyc$cycle" },
+            'after'         => sub { system "mv pre_run_* cyc$cycle" },
+        );
+        &prepare_submit_sync(%template);
+        system "rm -f pre_run_return";
+        &mesure($cycle, 0);
+    } 
+    else {
+        my $prev = $cycle - 1;
+        if (!@next_inits){
+            @next_inits = &get_next_init_structure($prev);
+        }
+        mkdir "cyc$cycle";
+        print "d: @next_inits\n";
+        my %template = (
+            'id@'           => sub { "cyc$cycle-$VALUE[0]" },
+            'JS_phnode'     => $JS_PHNODE,
+            'JS_cpu'        => $JS_CPU,
+            'JS_thread'     => $JS_THREAD,
+            'JS_node'       => $JS_NODE,
+            'JS_queue'      => $QUEUE,
+            'JS_group'      => $GROUP_ID,
+            'JS_limit_time' => $LIMIT_TIME,
+            'exe0'          => $GROMPP,
+            'arg0_0@'       => sub { 
+                "cyc$prev/$next_inits[$VALUE[0]].gro $cycle $VALUE[0]"
+            } ,
+            'exe1'          => $SHORTRUN,
+            'arg1_0@'       => sub { "$cycle $VALUE[0]" },
+            'RANGE0'        => [0..$PACS_THREADS-1],
+            'before'        => sub { },
+        );
+        &prepare_submit_sync(%template);
+        system "rm -f pre_run_return";
+        system "mv cyc$cycle-${_}_* cyc$cycle" for (0..$PACS_THREADS-1);
+        &mesure($cycle, $_) for (0 .. $PACS_THREADS-1);
+    } 
+    &merge_xvg($cycle);
+    @next_inits = &get_next_init_structure($cycle); 
+    # check if all next-init structres are available.
+    my @found_gros =  glob("cyc$cycle/*-*-*.gro");
+    @found_gros == $PACS_THREADS
+        or die "Something is wrong in generate next-step-init structres.\n";
+    $cycle++;
+}
+
+sub loop_test {
+    my $best_st = shift;
+}
+
+# mesure ::: $cycle,$thread => void:define mesure method here{{{
+sub mesure {
+    my ($cycle, $threads) = @_;
+    system "gmx distance -f cyc$cycle/${cycle}-${threads}.trr ".
+                        "-s cyc$cycle/${cycle}-${threads}.tpr ".
+                        "-b 0 -e $RUN_TIME ".
+                        "-oall cyc$cycle/$KEY_PREFIX${cycle}-${threads}.xvg << zzz\n".
+                            "atomnr 5391 plus atomnr 30990\n".
+                        "zzz";
+                        # 30990: UN1-term,  5391:NAP,  25991: ADP
+
+    # when use RMSD
+    #system "gmx rms  -f cyc$cycle/w${cycle}-${threads}.trr ".
+    #                "-s target.pdb ".
+    #                "-b 0 -e $RUN_TIME ".
+    #                "-o cyc${cycle}/${KEY_PREFIX}${cycle}-${threads}.xvg << zzz\n".
+    #                    "1\n".
+    #                    "1\n".
+    #                "zzz";
+}#}}}
+
+# merge_xvg ::: $cycle => void:merge xvgs to mesure{{{
+sub merge_xvg {
+    my $cycle = shift;
+    my @xvgs = glob "cyc${cycle}/${KEY_PREFIX}*.xvg";
+    # merge xvgs
+    foreach  (@xvgs){
+        my ($id) = ($_ =~ /cyc${cycle}\/${KEY_PREFIX}([\d\-]+)\.xvg/);
+        system "tail -".($RUN_TIME+1)." $_ | sed \"s/^/$id/g\" >> cyc${cycle}/ranking";
+    }
+}#}}}
+
+#get_next_init_structure >>> $cycle => void: generate next init structures, which were highly ranked in the $cycle{{{
+sub get_next_init_structure {
+    my $cycle = shift;
+    my @high_rankers = `sort -k3n,3 cyc${cycle}/ranking | head -$PACS_THREADS`;
+    @ranking = ();
+    foreach (@high_rankers){
+        my @cols = split;
+        push @ranking, sprintf "%s-%d", $col[0], $col[1];
+        my ($c, $t, $s, @o) = split /[-\s]+/;
+        system "gmx trjconv -f cyc$c/${c}-${t}.trr ".
+                           "-s cyc$c/${c}-${t}.tpr ".
+                           "-o cyc$c/${c}-${t}-${s}.gro -n $INDEX_FILE ". 
+                           "-b $s -e $s << zzz\n".
+                               "0\n".
+                           "zzz";
+        push @ranking, sprintf "%s-%s-%s", $c, $t, $s;
+    }
+    return @ranking;
+}#}}}
+
+
