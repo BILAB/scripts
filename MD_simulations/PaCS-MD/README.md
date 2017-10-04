@@ -18,6 +18,10 @@
 - `transdist`
     - 各サイクルのベストスコアを抽出,print
 
+- `backtrace_traj.pl`
+	- トラジェクトリを結合する準備として，最終サイクルから順に結合するトラジェクトリをトレースする。
+- `trajcat.pl`
+	- `backtrace_traj.pl` の結果をもとに，トラジェクトリを結合する。
 
 使い方
 ======
@@ -81,7 +85,27 @@ job_name <= submitted
 ```
 - tmux からログインしている場合は screen on tmux となりますので prefix キーにお気をつけください
 - reedbushにデフォルトでインストールされている screen の prefix は C-a です(おそらく)
+- 全てのサイクルを終えたら，トラジェクトリをつなげる作業に入る。
+- 好きなディレクトリ（ここでは`cat_all`) を`your_pacs_dir`直下に作成し
 
+```
+$ mkdir cat_all
+$ cd cat_all/
+## やり方は一例です。例えばこんな感じ
+## seq 0 120 の部分は適宜変えてください
+$ for c in `seq 0 120`;do sort -k3n,3 ../cyc$c/ranking | head -8 | awk '{printf("%s-%d ",$1, $2)} END{print "\n"}' | sed '/^$/d' >> inits.dat ; done
+$ less inits.dat
+$ perl backtrace_traj.pl inits.dat 120
+$ perl backtrace_traj.pl inits.dat  120 > pacs_trace_res.dat
+$ less pacs_trace_res.dat
+$ cp pacs_trace_res.dat trace1.dat
+## PaCS-MDではTHREADSで指定した本数のトラジェクトリが作れるため，１つだけを除いて一旦削除します
+## //で区切られているので好きなものを１つ残して，他は消す
+$ vim trace1.dat # to delete other than top.
+## index.ndx を参照するのでパスを適宜変更してください
+## 上手く行けば，full_traj.trr が出力されるはずです
+$ perl trajcat.pl trace1.dat
+```
 
 xcryptスクリプトの設定
 --------------------- 
