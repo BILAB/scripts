@@ -69,13 +69,13 @@
 - ディレクトリに必要なファイルを揃える
 
 ```
-# reedbushでは
+## reedbushでは
 $ module load xcrypt
 $ cd your_pacs_dir
-# 必ずしも screen である必要はないですが、xcrypt 自体はqsubされているわけではないため、reedbushからログアウトするとスクリプトが停止してしまうことの対策として、nohup なり screen なりを使うのが良いと思います。
-# 進行状況が出力されるのでscreenがおすすめです。(nohup でどうなるか知りません）
+## 必ずしも screen である必要はないですが、xcrypt 自体はqsubされているわけではないため、reedbushからログアウトするとスクリプトが停止してしまうことの対策として、nohup なり screen なりを使うのが良いと思います。
+## 進行状況が出力されるのでscreenがおすすめです。(nohup でどうなるか知りません）
 $ screen 
-# in screen session
+## in screen session
 $ xcrypt pacs_run.xcr
 job_name <= initialized
 job_name <= prepared

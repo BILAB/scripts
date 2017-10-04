@@ -159,16 +159,15 @@ sub get_next_init_structure {
     my @high_rankers = `sort -k3n,3 cyc${cycle}/ranking | head -$PACS_THREADS`;
     @ranking = ();
     foreach (@high_rankers){
-        my @cols = split;
-        push @ranking, sprintf "%s-%d", $col[0], $col[1];
-        my ($c, $t, $s, @o) = split /[-\s]+/;
+        my ($c, $t, $s, @o) = split /[\-\s]+/;
+        my $gro_file = sprintf "%s-%s-%d", $c, $t, $s;
         system "gmx trjconv -f cyc$c/${c}-${t}.trr ".
                            "-s cyc$c/${c}-${t}.tpr ".
-                           "-o cyc$c/${c}-${t}-${s}.gro -n $INDEX_FILE ". 
+                           "-o cyc$c/$gro_file.gro -n $INDEX_FILE ". 
                            "-b $s -e $s << zzz\n".
                                "0\n".
                            "zzz";
-        push @ranking, sprintf "%s-%s-%s", $c, $t, $s;
+        push @ranking, $gro_file;
     }
     return @ranking;
 }#}}}
