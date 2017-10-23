@@ -1,4 +1,5 @@
 # vim:set foldmethod=marker:
+-*- mode: perl;-*-
 use base qw (core limit);
 system "source /lustre/gi58/i58005/apps/gmx2016_3/bin/GMXRC.bash";
 
