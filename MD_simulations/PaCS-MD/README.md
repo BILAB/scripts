@@ -66,6 +66,8 @@
 実行手順
 --------
 
+- `grompp_bush.sh` のトポロジーファイルやインデックスファイルのパスをお使いの環境に合わせて編集
+
 - ディレクトリに必要なファイルを揃える
 
 ```
@@ -73,7 +75,7 @@
 $ module load xcrypt
 $ cd your_pacs_dir
 ## 必ずしも screen である必要はないですが、xcrypt 自体はqsubされているわけではないため、reedbushからログアウトするとスクリプトが停止してしまうことの対策として、nohup なり screen なりを使うのが良いと思います。
-## 進行状況が出力されるのでscreenがおすすめです。(nohup でどうなるか知りません）
+## 進行状況が出力されるのでscreenかtmuxがおすすめです。(nohup でどうなるか知りません）
 $ screen 
 ## in screen session
 $ xcrypt pacs_run.xcr
@@ -83,8 +85,6 @@ job_name <= submitted
 ...
 ...
 ```
-- tmux からログインしている場合は screen on tmux となりますので prefix キーにお気をつけください
-- reedbushにデフォルトでインストールされている screen の prefix は C-a です(おそらく)
 - 全てのサイクルを終えたら，トラジェクトリをつなげる作業に入る。
 - 好きなディレクトリ（ここでは`cat_all`) を`your_pacs_dir`直下に作成し
 
@@ -121,5 +121,6 @@ xcryptスクリプトの設定
         2. merge_xvg     : データの併合
         3. get_next_init : 次サイクルの初期構造の取得 & 生成
     - です。
+- xcrypt の使い方 [参考資料](http://www.cc.u-tokyo.ac.jp/support/kosyu/62/shiryou-20160906-5.pdf)
 
 
