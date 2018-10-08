@@ -49,8 +49,8 @@ EXAMPLE
         for s in l:
             sec = s.split()
 
-            a = int(sec[1])
-            b = int(sec[2])
+            a = int(sec[1]) + int(offset)
+            b = int(sec[2]) + int(offset)
             probability = float(sec[4])
 
             # not display if probability < cutoff
