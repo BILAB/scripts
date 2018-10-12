@@ -64,7 +64,8 @@ EXAMPLE
             if stored.resdict[b] == "GLY":
                 carb = "CA"
 
-            cmd.distance(f"{a}_{b}_{model}",f"(/{model}//{chain}/{a}/{cara})",(f"(/{model}//{chain}/{b}/{carb})"))
+            #cmd.distance(f"{a}_{b}_{model}",f"(/{model}//{chain}/{a}/{cara})",(f"(/{model}//{chain}/{b}/{carb})"))
+            cmd.distance('{0}_{1}_{2}'.format(a, b, model), '/{0}//{1}/{2}/{3}'.format(model, chain, a, cara), '/{0}//{1}/{2}/{3}'.format(model, chain, b, carb))
 
     cmd.set('dash_color', 'cyan')
     cmd.set('dash_radius', '0.1')

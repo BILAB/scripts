@@ -266,7 +266,7 @@ ARGUMENTS
 
     selection = string: atom selection {default: all}
 
-    exe = string: name of dssp executable {default: dsspcmbi}
+    exe = string: name of dssp executable {default: mkdssp}
 
     raw = string: atom property to load raw dssp class into {default: 'custom'}
 
@@ -274,7 +274,7 @@ ARGUMENTS
 
 EXAMPLE
 
-    dssp all, /sw/bin/dsspcmbi, raw=text_type
+    dssp all, /usr/local/bin/mkdssp, raw=text_type
     color gray
     color red, text_type H
     color orange, text_type G
@@ -296,6 +296,7 @@ SEE ALSO
 
     if exe == '':
         from . import which
+        os.environ["PATH"] = "/usr/local/bin:$PATH"
         exe = which('dsspcmbi', 'dssp', 'dssp-2', 'mkdssp')
     ss_map = {
         'B': 'S', # residue in isolated beta-bridge
